@@ -1,7 +1,10 @@
 import sublime, sublime_plugin
 import os
 
-class OpenJasmineSpecCommand(sublime_plugin.WindowCommand):
+spec_view_list = []
+
+class OpenJasmineSpecCommand(sublime_plugin.WindowCommand ):
+
   def run(self, paths = [], name = ""):
     current_dir = self.window.active_view().file_name()
     if current_dir:
@@ -10,11 +13,16 @@ class OpenJasmineSpecCommand(sublime_plugin.WindowCommand):
       sublime.error_message("No file open in active view.")
 
   def go_to_spec(self, directory):
-    dirs = directory.split("/")
+    dirs = [directory]
+    while (os.path.split(dirs[0])[0] and os.path.split(dirs[0])[1]):
+      new_sections = os.path.split(dirs[0])
+      dirs = [new_sections[0], new_sections[1]] + dirs[1:]
     dirs.insert(dirs.index("ck"), "spec")
+
     filename_with_spec = dirs[-1].split(".")[0] + "_spec.js"
     dirs[-1] = filename_with_spec
-    new_path = "/".join(dirs)
+
+    new_path = os.path.join(*dirs)
 
     file_exists = os.path.exists(new_path)
 
@@ -22,13 +30,23 @@ class OpenJasmineSpecCommand(sublime_plugin.WindowCommand):
       sublime.active_window().open_file(new_path)
     else:
       old_view = self.window.active_view()
-      new_view = self.window.new_file()
-      new_view.set_name(new_path)
-      self.create_spec(old_view, new_view)
+      new_file = open(new_path, 'w')
+      new_file.close();
 
-  def create_spec(self, old_view, new_view):
-    first_line = old_view.find("^goog\\.provide\\('.*?'\\);$", 0);
-    class_name = old_view.substr(first_line).split("'")[1]
+      new_view = sublime.active_window().open_file(new_path)
+      new_view.settings().set('jasmine_closure_new_spec', True)
+
+      first_line = old_view.find("^goog\\.provide\\('.*?'\\);$", 0)
+      class_name = old_view.substr(first_line).split("'")[1]
+      new_view.settings().set('jasmine_closure_class_name', class_name)
+
+
+class JasmineSpecOpenListener (sublime_plugin.EventListener):
+  def on_load(self, view):
+    if (view.settings().get('jasmine_closure_new_spec')):
+      self.create_spec(view)
+
+  def create_spec(self, view):
 
     snippet = """goog.require('$1');
 
@@ -42,8 +60,8 @@ describe ('$1', function () {
 
 });
 """
-    edit = new_view.begin_edit()
+    edit = view.begin_edit()
+    class_name = view.settings().get('jasmine_closure_class_name')
     template_text = snippet.replace("$1", class_name)
-    new_view.insert(edit, 0, template_text)
-    new_view.end_edit(edit)
-
+    view.insert(edit, 0, template_text)
+    view.end_edit(edit)
