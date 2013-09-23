@@ -1,5 +1,6 @@
 import sublime, sublime_plugin
 import os
+from functools import partial
 
 spec_view_list = []
 
@@ -45,6 +46,7 @@ class JasmineSpecOpenListener (sublime_plugin.EventListener):
   def on_load(self, view):
     if (view.settings().get('jasmine_closure_new_spec')):
       self.create_spec(view)
+      view.settings().set('jasmine_closure_new_spec', False)
 
   def create_spec(self, view):
 
@@ -57,7 +59,6 @@ describe ('$1', function () {
   beforeEach(function () {
     testObj = new $1();
   });
-
 });
 """
     edit = view.begin_edit()
@@ -65,3 +66,22 @@ describe ('$1', function () {
     template_text = snippet.replace("$1", class_name)
     view.insert(edit, 0, template_text)
     view.end_edit(edit)
+
+    handler = partial(self.add_test, view)
+    view.window().show_input_panel('Enter statement for test (enter nothing to quit):', '', handler, None, None)
+
+  def add_test(self, view, text):
+    test_label = text.strip()
+    if (test_label != ''):
+      test_template = """
+
+  it("$1", function () {
+  });"""
+      test_text = test_template.replace("$1", test_label)
+
+      edit = view.begin_edit()
+      test_end = view.find_all('\}\);', 0)[-1].begin()
+      view.insert(edit, test_end - 1, test_text)
+
+      handler = partial(self.add_test, view)
+      view.window().show_input_panel('Enter statement for test (enter nothing to quit):', '', handler, None, None)
