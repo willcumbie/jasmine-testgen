@@ -24,12 +24,16 @@ class OpenJasmineSpecCommand(sublime_plugin.WindowCommand ):
     dirs[-1] = filename_with_spec
 
     new_path = os.path.join(*dirs)
+    new_dir = os.path.join(*dirs[0:-1])
 
     file_exists = os.path.exists(new_path)
+    dir_exists = os.path.exists(new_dir)
 
     if file_exists:
       sublime.active_window().open_file(new_path)
     else:
+      if not dir_exists:
+        self.create_directory(*dirs[0:-1])
       old_view = self.window.active_view()
       new_file = open(new_path, 'w')
       new_file.close();
@@ -41,6 +45,12 @@ class OpenJasmineSpecCommand(sublime_plugin.WindowCommand ):
       class_name = old_view.substr(first_line).split("'")[1]
       new_view.settings().set('jasmine_closure_class_name', class_name)
 
+  def create_directory(self, *folders):
+    path_so_far = ""
+    for folder in folders:
+      path_so_far = os.path.join(path_so_far, folder)
+      if not os.path.exists(path_so_far):
+        os.mkdir(path_so_far)
 
 class JasmineSpecOpenListener (sublime_plugin.EventListener):
   def on_load(self, view):

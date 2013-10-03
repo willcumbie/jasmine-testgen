@@ -2,5 +2,9 @@
     {
         "caption": "Jasmine: Open Jasmine Spec",
         "command": "open_jasmine_spec"
+    },
+    {
+        "caption": "Jasmine: Open Test in Browser",
+        "command": "open_browser_test"
     }
 ]
