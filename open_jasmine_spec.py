@@ -62,7 +62,7 @@ class JasmineSpecOpenListener (sublime_plugin.EventListener):
 
     snippet = """goog.require('$1');
 
-describe ('$1', function () {
+describe('$1', function () {
   var testObj;
 
   beforeEach(function () {
