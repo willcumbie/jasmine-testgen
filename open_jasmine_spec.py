@@ -76,6 +76,23 @@ describe('$1', function () {
     view.insert(edit, 0, template_text)
     view.end_edit(edit)
 
+    handler = partial(self.add_fixture, view)
+    view.window().show_input_panel('Would you like to add a setFixture statement? (Y/n):', '', handler, None, None)
+
+  def add_fixture(self, view, text):
+    if (text[0].lower() != 'n'):
+      edit = view.begin_edit()
+
+      variable_declaration_end = view.find('testObj', 0).end()
+      view.insert(edit, variable_declaration_end, ', container')
+
+      before_each_start = view.find('testObj =', 0).begin()
+      fixture_text = """setFixtures('<div id="container"></div>');
+    container = goog.dom.getElement('container');
+    """
+      view.insert(edit, before_each_start, fixture_text)
+
+      view.end_edit(edit)
     handler = partial(self.add_test, view)
     view.window().show_input_panel('Enter statement for test (enter nothing to quit):', '', handler, None, None)
 
@@ -91,6 +108,7 @@ describe('$1', function () {
       edit = view.begin_edit()
       test_end = view.find_all('\}\);', 0)[-1].begin()
       view.insert(edit, test_end - 1, test_text)
+      view.end_edit(edit)
 
       handler = partial(self.add_test, view)
       view.window().show_input_panel('Enter statement for test (enter nothing to quit):', '', handler, None, None)
