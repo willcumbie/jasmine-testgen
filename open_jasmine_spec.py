@@ -101,7 +101,7 @@ describe('$1', function () {
     if (test_label != ''):
       test_template = """
 
-  it("$1", function () {
+  it('$1', function () {
   });"""
       test_text = test_template.replace("$1", test_label)
 
