@@ -13,5 +13,5 @@ class OpenBrowserTest(sublime_plugin.WindowCommand ):
       sublime.error_message("No file open in active view.")
 
   def open_test(self, target):
-    target_url = "http://localhost:18888/run_tests?path=/ck/" + target.rsplit('/ck/', 1)[1]
+    target_url = "http://localhost:5100/run_tests?path=/ck/" + target.rsplit('/ck/', 1)[1]
     webbrowser.open(target_url, new=0, autoraise=True)
